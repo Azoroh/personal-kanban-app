@@ -27,128 +27,109 @@ const initialTasks = [
 export default function App() {
   const [tasks, setTasks] = useState(initialTasks);
 
-  function handleAddTask(newTask) {
-    setTasks((tasks) => [...tasks, newTask]);
-  }
-
-  function handleMove(status, taskItem) {
+  function handleMoveTask(taskId, nextStatus) {
     setTasks((tasks) =>
       tasks.map((task) =>
-        task.id === taskItem.id ? { ...task, status: status } : task,
+        task.id === taskId ? { ...task, status: nextStatus } : task,
       ),
     );
   }
 
-  function handleDelete(taskItem) {
-    setTasks((tasks) => tasks.filter((task) => task.id !== taskItem.id));
+  function handleAddTask(newTask) {
+    setTasks((tasks) => [...tasks, newTask]);
+  }
+
+  function handleDelete(taskId) {
+    setTasks((tasks) => tasks.filter((task) => task.id !== taskId));
   }
 
   return (
     <div className="app">
-      <h1 className="app-title">Kanban Board</h1>
-
+      <div className="app-title">Kanban Board</div>
       <div className="board">
-        <TodoBoard
+        <Board
           tasks={tasks}
+          title="Todo"
+          status="todo"
+          actionLabel="Move to Doing"
+          onClick={(id) => handleMoveTask(id, "doing")}
           onAddTask={handleAddTask}
-          onMove={handleMove}
         />
 
-        <DoingBoard tasks={tasks} onMove={handleMove} />
+        <Board
+          tasks={tasks}
+          title="Doing"
+          status="doing"
+          actionLabel="Move to Done"
+          onClick={(id) => handleMoveTask(id, "done")}
+          btnType="success"
+        />
 
-        <DoneBoard tasks={tasks} onDelete={handleDelete} />
+        <Board
+          tasks={tasks}
+          title="Done"
+          status="done"
+          actionLabel="Delete"
+          onClick={handleDelete}
+          btnType="danger"
+        />
       </div>
     </div>
   );
 }
 
-function TodoBoard({ tasks, onAddTask, onMove }) {
-  const [task, setTask] = useState("");
+function Board({
+  tasks,
+  title,
+  status,
+  actionLabel,
+  onAddTask,
+  onClick,
+  btnType,
+}) {
+  const [newTask, setNewTask] = useState("");
 
   function handleSubmit(e) {
-    e.preventDefault();
-    if (!task) return;
+    e.preventDefault;
+    if (!newTask) return;
 
-    const newTask = { id: crypto.randomUUID(), title: task, status: "todo" };
-    onAddTask(newTask);
+    onAddTask({ id: crypto.randomUUID(), title: newTask, status });
 
-    setTask("");
+    setNewTask("");
   }
 
+  const filteredTasks = tasks.filter((task) => task.status === status);
+
   return (
     <section className="column">
-      <h2 className="column-title">Todo</h2>
+      <h2 className="column-title">{title}</h2>
 
       <div className="task-list">
-        {tasks.map(
-          (task) =>
-            task.status === "todo" && (
-              <TaskCard key={task.id} task={task}>
-                <h3>{task.title}</h3>
-                <button className="btn" onClick={() => onMove("doing", task)}>
-                  Move to Doing
-                </button>
-              </TaskCard>
-            ),
-        )}
+        {filteredTasks.map((task) => (
+          <TaskCard key={task.id}>
+            <h3>{task.title}</h3>
+
+            <button
+              className={`btn ${btnType}`}
+              onClick={() => onClick(task.id)}
+            >
+              {actionLabel}
+            </button>
+          </TaskCard>
+        ))}
       </div>
 
-      <form className="add-task-form" onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={task}
-          onChange={(e) => setTask(e.target.value)}
-          placeholder="New task..."
-        />
-        <button className="btn">Add</button>
-      </form>
-    </section>
-  );
-}
-
-function DoingBoard({ tasks, onMove }) {
-  return (
-    <section className="column">
-      <h2 className="column-title">Doing</h2>
-
-      <div className="task-list">
-        {tasks.map(
-          (task) =>
-            task.status === "doing" && (
-              <TaskCard key={task.id} task={task}>
-                <h3>{task.title}</h3>
-                <button
-                  className="btn success"
-                  onClick={() => onMove("done", task)}
-                >
-                  Move to Done
-                </button>
-              </TaskCard>
-            ),
-        )}
-      </div>
-    </section>
-  );
-}
-
-function DoneBoard({ tasks, onDelete }) {
-  return (
-    <section className="column">
-      <h2 className="column-title">Done</h2>
-
-      <div className="task-list">
-        {tasks.map(
-          (task) =>
-            task.status === "done" && (
-              <TaskCard key={task.id} task={task}>
-                <h3>{task.title}</h3>
-                <button className="btn danger" onClick={() => onDelete(task)}>
-                  Delete
-                </button>
-              </TaskCard>
-            ),
-        )}
-      </div>
+      {onAddTask && status === "todo" && (
+        <form className="add-task-form" onSubmit={handleSubmit}>
+          <input
+            type="text"
+            value={newTask}
+            onChange={(e) => setNewTask(e.target.value)}
+            placeholder="New task..."
+          />
+          <button className="btn">Add</button>
+        </form>
+      )}
     </section>
   );
 }
