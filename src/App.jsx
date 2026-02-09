@@ -90,7 +90,7 @@ function Board({
   const [newTask, setNewTask] = useState("");
 
   function handleSubmit(e) {
-    e.preventDefault;
+    e.preventDefault();
     if (!newTask) return;
 
     onAddTask({ id: crypto.randomUUID(), title: newTask, status });
